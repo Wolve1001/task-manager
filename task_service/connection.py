@@ -17,6 +17,6 @@ try:
                             host=DB_HOST,
                             port=DB_PORT)
     print("Database connected successfully")
-except:
+except Exception as e:
     print("Database not connected successfully")
-
+    print(e)
