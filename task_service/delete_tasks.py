@@ -10,10 +10,10 @@ SCHEMA = os.getenv('INFO_SCHEMA')
 def delete_task(task_id: int):
     try:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM {SCHEMA}.tasks WHERE task_id = %s", (task_id))
+        cursor.execute("SELECT task_name FROM user_info.tasks WHERE task_id = %s", (task_id,))
+        task_name = cursor.fetchone()[0]
 
-        cursor.execute("SELECT task_name FROM {SCHEMA}.tasks WHERE task_id = %s", (task_id))
-        task_name = cursor.fetchone()[1]
+        cursor.execute("DELETE FROM user_info.tasks WHERE task_id = %s", (task_id,))
 
         cursor.close()
         conn.commit()
