@@ -1,4 +1,6 @@
-psycopg2
+asyncpg
 python-dotenv
 fastapi[standard]
 apscheduler
+asyncio
+bcrypt

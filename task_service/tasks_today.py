@@ -1,21 +1,16 @@
-from task_service.connection import conn
+from connection import connect_db
 from datetime import date, datetime
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-SCHEMA = os.getenv('INFO_SCHEMA')
-
-def task_today(user_name: str, sort: str = None):
+async def task_today(user_name: str, sort: str = None):
     try:
-        cursor = conn.cursor()
+        conn = await connect_db()
+        cursor = await conn.cursor()
         date_today = date.today()
         if sort == "desc":
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND due_date = %s AND status = 'pending' ORDER BY due_date DESC", (user_name, date_today))
+            await cursor.execute("SELECT * FROM tasks WHERE user_name = %s AND due_date = %s AND status = 'pending' ORDER BY due_date DESC", (user_name, date_today))
         else:
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND due_date = %s AND status = 'pending' ORDER BY due_date", (user_name, date_today))
-        tasks_rem_today = cursor.fetchall()
+            await cursor.execute("SELECT * FROM tasks WHERE user_name = %s AND due_date = %s AND status = 'pending' ORDER BY due_date", (user_name, date_today))
+        tasks_rem_today = await cursor.fetchall()
 
         if tasks_rem_today:
             print("Tasks due for today: ")
@@ -28,8 +23,8 @@ def task_today(user_name: str, sort: str = None):
         else:
             print("All tasks are completed.")
         
-        cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND due_date = %s AND status = 'done'", (user_name, date_today))
-        tasks_done_today = cursor.fetchall()
+        await cursor.execute("SELECT * FROM tasks WHERE user_name = %s AND due_date = %s AND status = 'done'", (user_name, date_today))
+        tasks_done_today = await cursor.fetchall()
 
         if tasks_done_today:
             print("Tasks completed today: ")
@@ -46,15 +41,16 @@ def task_today(user_name: str, sort: str = None):
         print("Error fetching tasks: ", e)
 
 
-def task_by_notification(user_name: str, notify_at: datetime, sort: str = None):
+async def task_by_notification(user_name: str, notify_at: datetime, sort: str = None):
     try:
-        cursor = conn.cursor()
-        date = date.today()
+        conn = await connect_db()
+        cursor = await conn.cursor()
+        today = date.today()
         if sort == "desc":
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND notify_at = %s AND due_date = %s ORDER BY notify_at DESC", (user_name, notify_at, date))
+            await cursor.execute("SELECT * FROM user_info.tasks WHERE user_name = %s AND notify_at = %s AND due_date = %s ORDER BY notify_at DESC", (user_name, notify_at, today))
         else:
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND notify_at = %s AND due_date = %s ORDER BY notify_at", (user_name, notify_at, date))
-        tasks_notify_today = cursor.fetchall()
+            await cursor.execute("SELECT * FROM user_info.tasks WHERE user_name = %s AND notify_at = %s AND due_date = %s ORDER BY notify_at", (user_name, notify_at, today))
+        tasks_notify_today = await cursor.fetchall()
 
         if tasks_notify_today:
             print("Tasks to be notified about today: ")
@@ -68,15 +64,16 @@ def task_by_notification(user_name: str, notify_at: datetime, sort: str = None):
     except Exception as e:
         print("Error fetching tasks: ", e)
 
-def task_by_category(user_name: str, category: str, sort: str = None):
+async def task_by_category(user_name: str, category: str, sort: str = None):
     try:
-        cursor = conn.cursor()
+        conn = await connect_db()
+        cursor = await conn.cursor()
         date = date.today()
         if sort == "desc":
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND category = %s AND due_date = %s ORDER BY due_date DESC", (user_name, category, date))
+            await cursor.execute("SELECT * FROM user_info.tasks WHERE user_name = %s AND category = %s AND due_date = %s ORDER BY due_date DESC", (user_name, category, date))
         else:
-            cursor.execute("SELECT * FROM {SCHEMA}.tasks WHERE user_name = %s AND category = %s AND due_date = %s ORDER BY due_date", (user_name, category, date))
-        tasks = cursor.fetchall()
+            await cursor.execute("SELECT * FROM user_info.tasks WHERE user_name = %s AND category = %s AND due_date = %s ORDER BY due_date", (user_name, category, date))
+        tasks = await cursor.fetchall()
 
         for task in tasks:
             print("Task: " + task[1] + ", Due By: " + str(task[3]) + ", Category: " + task[7])
